@@ -1,0 +1,2 @@
+class worker:
+    pass

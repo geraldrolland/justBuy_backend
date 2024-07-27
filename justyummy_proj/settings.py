@@ -189,7 +189,7 @@ EMAIL_HOST_PASSWORD = 'gmbj vyce ixpn gyrn '
 #CELERY_TIMEZONE = 'UTC'
 #CELERY_ENABLE_UTC = True
 
-#session cookie configuration
+
 
 
 SESSION_COOKIE_HTTPONLY = True

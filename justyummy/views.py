@@ -55,11 +55,12 @@ class UserViewSet(viewsets.ViewSet):
         print(request.data.get("email"))
         print("error")
         otp = random.randint(5101, 8963)
+        print("this is my cookies otp to hash", otp)
         otp_str = UserViewSet.otp_hash_algo(otp)
         print(otp_str)
         response = Response({"detail": "otp created successfully"},  status=status.HTTP_201_CREATED)
-        response.set_cookie("otp", otp_str, max_age=360000)
-        response.set_cookie("email", request.data.get("email"))
+        response.set_cookie(key="otp", value=otp_str, max_age=3600, httponly=True)
+        response.set_cookie("email", request.data.get("email"), max_age=3600, httponly=True)
         print(response.cookies)
         subject = "User Change Password"
         html_content = '''
@@ -89,37 +90,39 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, permission_classes=[AllowAny], methods=["post"])
     def verify_otp(self, request, format=None):
-        print(request.COOKIES.get("otp"))
-        """
+        print("this is the cookie otp to unhash", request.COOKIES.get("otp"))
         try:
             if request.data.get("otp") == UserViewSet.otp_unhash_algo(request.COOKIES.get("otp")):
                 response = Response({"detail": "otp verified successfully"}, status=status.HTTP_200_OK)
-                response.set_cookie('permitChangePasswd', True, secure=True)
+                response.set_cookie('permitChangePasswd', True, httponly=True)
                 return response
+            return Response({"detail": "invalid otp"}, status=status.HTTP_406_NOT_ACCEPTABLE)
         except KeyError as e:
             return Response({"detail": "incorrect otp"}, status=status.HTTP_400_BAD_REQUEST)
-            """
-        return Response({"detail Cookies printed"}, status=status.HTTP_200_OK)
+
     
     @action(detail=False, permission_classes=[AllowAny], methods=["post"])
     def change_user_password(self, request, format=None):
-        if request.user.IsAuthenticated:
-            user = CustomUser.objects.filter(email=request.user.get("email"))
-            serializer = CustomUserSerializer(user, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response({"detail": "password changed successfully"}, status=status.HTTP_200_OK)
-        if request.COOKIES.get("permitChangePasswd") == True:
-            user_email = request.COOKIES.get("email")
-            user = get_object_or_404(CustomUser, email=user_email)
-            serializer = CustomUserSerializer(user, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            response = Response({"detail": "password changed succesfully"}, status=status.HTTP_200_OK)
-            response.delete_cookie("email")
-            response.delete_cookie("permitChangePasswd")
-            return response
-        return Response({"detail": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if request.user.IsAuthenticated():
+                user = CustomUser.objects.filter(email=request.user.get("email"))
+                serializer = CustomUserSerializer(user, data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response({"detail": "password changed successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            if request.COOKIES.get("permitChangePasswd") == 'True':
+                user_email = request.COOKIES.get("email")
+                user = get_object_or_404(CustomUser, email=user_email)
+                request.data["email"] = user_email
+                serializer = CustomUserSerializer(user, data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                response = Response({"detail": "password changed succesfully"}, status=status.HTTP_200_OK)
+                response.delete_cookie("email")
+                response.delete_cookie("permitChangePasswd")
+                return response
+            return Response({"detail": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[IsAuthenticated], authentication_classes=[SessionAuthentication, JWTAuthentication, BasicAuthentication], methods=["post"])
     def update_user(self, request, format=None, pk=None):
@@ -177,10 +180,12 @@ class UserViewSet(viewsets.ViewSet):
         '8': '],)/', '9': '>*!&'
         }
         hash_str = ""
+        i = 0
         for ch in otp_str:
             hash_str += hash_map_dict[ch]
-            if ch != otp_str[3]:
+            if i != 3:
                 hash_str += "="
+            i += 1
         return hash_str
         
     @staticmethod
@@ -198,9 +203,11 @@ class UserViewSet(viewsets.ViewSet):
         }
         otp_str = ""
         hash_str = hash_str.split("=")
+        print("this is the hash str list", hash_str)
         for _str in hash_str:
             otp_str += unhash_map_dict[_str]
         otp = int(otp_str)
+        print("this is the unhash otp", otp)
         return otp
 
 

@@ -23,6 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f7)or8n^*db6b-jp(wp^x#cg8jl=g9%$7px0m5e22h8xt_r91w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -40,7 +42,8 @@ INSTALLED_APPS = [
     'justyummy',
     #'atatus.contrib.django',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+
 ]
 
 MIDDLEWARE = [
@@ -56,9 +59,14 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://192.168.56.1:5173",
+    "http://172.17.86.81:5173",
+    "http://192.168.163.48:5173",
+    "http://localhost:5173"
 ]
+CORS_ALLOW_CREDENTIALS = True
 
+client_id = "AayoEynirKMLbcu2lyCPdIfUrgfEaWfcDwVYeD8idFL268xmuSKAG1ANvdEEB_CpWVNli9IZRmEiQqVT"
+client_secret = "EGMT1_At9JQ0oJ8p6rFdM1f74bPzZdHboOWwATcQB9oqYIXc0H7epaZeAFiCO1-oHpIcRMuuj3LnNNNz"
 
 ROOT_URLCONF = 'justyummy_proj.urls'
 AUTH_USER_MODEL = 'justyummy.CustomUser'
@@ -176,10 +184,11 @@ SESSION_ENGINES = "django.contrib.sessions.backends.cached_db"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465 #587
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'geraldrolland123456@gmail.com'
-EMAIL_HOST_PASSWORD = 'gmbj vyce ixpn gyrn '
+EMAIL_HOST_PASSWORD =  'gmbj vyce ixpn gyrn ' #"jerrycefar123456" #'sqvd zojd ybiv jnch'
 
 #CELERY_BROKER_URL = 'redis://169.254.162.107:6379/0'
 #CELERY_RESULT_BACKEND = 'redis://169.254.162.107.255:6379/0'

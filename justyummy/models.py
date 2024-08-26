@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group, Permission
 import uuid
 from datetime import datetime
 from .custusermanager import CustomUserManager
-
+from django.utils import timezone
 
 class ProductCategory(models.TextChoices):
     PHONES = "phone", "Phone"
@@ -48,7 +48,7 @@ class CustomUser(AbstractUser):
     
 
 class Product(models.Model):
-    productId = models.UUIDField(primary_key=True, auto_created=uuid.uuid4())
+    productId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     productName = models.CharField(max_length=64, null=False)
     productCategory = models.CharField(max_length=32, unique=True, choices=ProductCategory.choices, default=ProductCategory.NONE)
     isOnFlashSale = models.BooleanField(default=False)
@@ -57,37 +57,53 @@ class Product(models.Model):
     isBestSelling = models.BooleanField(default=False)
     orderRate = models.IntegerField(default=0)
     productDesignation = models.CharField(max_length=32, unique=True, choices=ProductDesignation.choices, default=ProductDesignation.ALL)
-    created_at = models.DateTimeField(default=datetime.today())
-    update_at = models.DateTimeField(default=datetime.today())
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True)
 
+class CustomerBillingDetails(models.Model):
+    billingDetailId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    create_at = models.DateField(auto_now_add=True)
+    first_name = models.CharField(max_length=64)
+    company_name = models.CharField(max_length=64)
+    street_name = models.CharField(max_length=64)
+    apartment = models.CharField(max_length=64, blank=True, null=True)
+    city = models.CharField(max_length=64)
+    phone_number = models.CharField(max_length=15)
+    email = models.EmailField(max_length=64)
+    payment_method = models.CharField(max_length=64)
+    payment_type = models.CharField(max_length=64)
+    total_price = models.FloatField()
+
 class CustomerReciept(models.Model):
-    receiptId = models.UUIDField(primary_key=True, auto_created=uuid.uuid1)
+    receiptId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    create_at = models.DateTimeField(auto_created=datetime.today().isoformat())
+    create_at = models.DateTimeField(auto_now_add=True)
+    billing_detail = models.ForeignKey(CustomerBillingDetails, on_delete=models.CASCADE)
     paymentStatus = models.BooleanField(default=False)
-    shippingPrice = models.IntegerField(default=0)
-    VATOnProduct = models.IntegerField(default=0)
-    grandTotalPriceOnProducts = models.IntegerField(default=0)
+    shippingPrice = models.IntegerField(default=0, blank=True, null=True)
+    VATOnProduct = models.IntegerField(default=0, blank=True, null=True)
+    grandTotalPriceOnProducts = models.FloatField()
     isRefund = models.BooleanField(default=False)
 
-class CustomerPurchasedOrders(models.Model):
-    productPurchaseId = models.UUIDField(primary_key=True, auto_created=uuid.uuid3)
-    productName = models.CharField(max_length=64)
-    quantity=models.IntegerField(default=1)
-    purchaseDate = models.DateField(auto_created=datetime.today().isoformat())
-    productPriceTotal = models.IntegerField(default=0)
+class CustomerOrders(models.Model):
+    orderId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    orderName = models.CharField(max_length=1024, null=False)
+    orderQuantity=models.IntegerField(default=1)
+    orderDate = models.DateField(auto_now_add=True)
+    orderTotalPrice = models.CharField(null=False, max_length=24)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     receipt = models.ForeignKey(CustomerReciept, on_delete=models.CASCADE)
 
-
 class Comment(models.Model):
-    commentId = models.UUIDField(primary_key=True, auto_created=uuid.uuid4)
+    commentId = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     text = models.TextField(null=False)
-    publishDate = models.DateField(auto_created=datetime.today())
+    publishDate = models.DateField(default=timezone.now, null=False)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
-class Clock(models.Model):
-    expiration_date = models.DateField()
+
+
+
+
 
 

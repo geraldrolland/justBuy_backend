@@ -22,18 +22,7 @@ class CustomUserSerializer(ModelSerializer):
         instance.save()
         return instance
     
-class CustomerReceiptSerializer(ModelSerializer):
-    user = CustomUserSerializer()
-    class Meta:
-        model = CustomerReciept
-        fields = '__all__'
-    
-    def create(self, validated_date):
-        user = validated_date.pop("user")
-        user = CustomUser.objects.create(**user)
-        reciept = CustomerReciept.objects.create(user=user, **validated_date)
-        reciept.save()
-        return reciept
+
         
 
 class ProductSerializer(ModelSerializer):
@@ -53,27 +42,35 @@ class ProductSerializer(ModelSerializer):
         instance.save()
         return instance
 
-class CustomerPurchasedOrderSerializer(ModelSerializer):
-    user = CustomUserSerializer()
-    receipt = CustomerReceiptSerializer()
+
+class CustomerBillingDetailsSerializer(ModelSerializer):
     class Meta:
-        model = CustomerPurchasedOrders
+        model =  CustomerBillingDetails #CustomerBillingDetails
         fields = "__all__"
-
-    def create(self, validated_data):
-        purchasedOrder = CustomerPurchasedOrders.objects.create( **validated_data)
-        purchasedOrder.save()
-        return purchasedOrder
-
-
-class ClockSerializer(ModelSerializer):
-    class Meta:
-        models = Clock
-        fields = "__all__"
-        
-    def create(self, validated_data):
-        clock = Clock.objects.create(**validated_data)
-        clock.save()
-        return clock
     
+    def create(self, validated_data):
+        # You can remove the print statement if not needed
+        print("worked")
+        billing_details = CustomerBillingDetails.objects.create(**validated_data)
+        return billing_details
+    
+class CustomerReceiptSerializer(ModelSerializer):
+    class Meta:
+        model = CustomerReciept
+        fields = "__all__"
+    
+    def create(self, validated_data):
+        receipt = CustomerReciept.objects.create(**validated_data)
+        return receipt
 
+
+class CustomerOrderSerializer(ModelSerializer):
+    class Meta:
+        model = CustomerOrders
+        fields = "__all__"
+
+    def create(self, validated_data):
+        print(" is order working")
+        customerOrder = CustomerOrders.objects.create(**validated_data)
+        customerOrder.save()
+        return customerOrder
